@@ -1,36 +1,44 @@
 package com.dummy.myerp.model.bean.comptabilite;
 
-import org.junit.Assert;
-import org.junit.Test;
+
+import org.junit.jupiter.api.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+
 
 public class CompteComptableTest {
 
+    private CompteComptable compteComptable;
+    private List<CompteComptable> compteComptableList;
+
+    @BeforeEach
+    void initEach() {
+        // creation et alimentation d'une liste de CompteComptable
+        compteComptableList = new ArrayList<>();
+        //----- creation du compte pour les tests
+        compteComptable = new CompteComptable(1,"compte comptable 1");
+        compteComptableList.add(compteComptable);
+        //----- alimentation de la liste avec d'autres comptes
+        compteComptableList.add(new CompteComptable(2, "compte comptable 2"));
+        compteComptableList.add(new CompteComptable(3, "compte comptable 3"));
+
+    }
+
+    @AfterEach
+    void cleanUpEach() {
+        compteComptable = null;
+        compteComptableList.clear();
+    }
+
     @Test
+    @DisplayName("getByNumero() test")
     public void getByNumero() {
-        List<CompteComptable> compteComptableList = new ArrayList<>();
-
-        CompteComptable compteComptable1 = new CompteComptable();
-        compteComptable1.setLibelle("compte comptable 1");
-        compteComptable1.setNumero(1);
-        compteComptableList.add(compteComptable1);
-
-        CompteComptable compteComptable2 = new CompteComptable();
-        compteComptable2.setLibelle("compte comptable 2");
-        compteComptable2.setNumero(2);
-        compteComptableList.add(compteComptable2);
-
-        CompteComptable compteComptable3 = new CompteComptable();
-        compteComptable3.setLibelle("compte comptable 3");
-        compteComptable3.setNumero(3);
-        compteComptableList.add(compteComptable3);
-
-        Assert.assertSame(CompteComptable.getByNumero(compteComptableList, 1), compteComptable1);
-        Assert.assertNull(CompteComptable.getByNumero(compteComptableList, 4));
+        assertSame(CompteComptable.getByNumero(compteComptableList, 1), compteComptable);
+        assertNull(CompteComptable.getByNumero(compteComptableList, 4));
 
     }
 }

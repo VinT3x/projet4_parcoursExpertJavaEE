@@ -54,9 +54,9 @@
         <!-- ========== Test Dependencies ========== -->
         <!-- ===== Tests ===== -->
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.3.2</version>
         </dependency>
 
         <!-- ===== JSR 303 - Bean validation ===== -->
