@@ -41,4 +41,19 @@ public class EcritureComptableTest {
         Assert.assertFalse(vEcriture.toString(), vEcriture.isEquilibree());
     }
 
+    @Test
+    public void getTotalDebit() {
+        EcritureComptable vEcriture;
+        vEcriture = new EcritureComptable();
+
+        vEcriture.setLibelle("getTotalDebit");
+        vEcriture.getListLigneEcriture().add(this.createLigne(1, "200.50", null));
+        vEcriture.getListLigneEcriture().add(this.createLigne(1, "101.50", "33"));
+        vEcriture.getListLigneEcriture().add(this.createLigne(1, null, "33"));
+        vEcriture.getListLigneEcriture().add(this.createLigne(1, "12", "33"));
+
+        BigDecimal bd = new BigDecimal (314);
+        Assert.assertEquals(vEcriture.getTotalDebit().compareTo(bd), 0);
+
+    }
 }
