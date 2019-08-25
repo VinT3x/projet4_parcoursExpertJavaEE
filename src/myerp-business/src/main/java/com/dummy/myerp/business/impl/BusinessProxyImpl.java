@@ -1,8 +1,6 @@
 package com.dummy.myerp.business.impl;
 
 import com.dummy.myerp.business.contrat.BusinessProxy;
-import com.dummy.myerp.business.contrat.manager.ComptabiliteManager;
-import com.dummy.myerp.business.impl.manager.ComptabiliteManagerImpl;
 import com.dummy.myerp.consumer.dao.contrat.DaoProxy;
 
 
@@ -17,8 +15,6 @@ public class BusinessProxyImpl implements BusinessProxy {
 
 
     // ==================== Attributs ====================
-    /** The Comptabilite manager. */
-    private ComptabiliteManager comptabiliteManager = new ComptabiliteManagerImpl();
 
 
     // ==================== Constructeurs ====================
@@ -60,8 +56,5 @@ public class BusinessProxyImpl implements BusinessProxy {
 
 
     // ==================== Getters/Setters ====================
-    @Override
-    public ComptabiliteManager getComptabiliteManager() {
-        return comptabiliteManager;
-    }
+
 }

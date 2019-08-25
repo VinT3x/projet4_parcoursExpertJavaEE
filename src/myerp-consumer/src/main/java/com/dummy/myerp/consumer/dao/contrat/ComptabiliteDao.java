@@ -1,12 +1,12 @@
 package com.dummy.myerp.consumer.dao.contrat;
 
-import java.util.List;
-
 import com.dummy.myerp.model.bean.comptabilite.CompteComptable;
 import com.dummy.myerp.model.bean.comptabilite.EcritureComptable;
 import com.dummy.myerp.model.bean.comptabilite.JournalComptable;
 import com.dummy.myerp.model.bean.comptabilite.SequenceEcritureComptable;
 import com.dummy.myerp.technical.exception.NotFoundException;
+
+import java.util.List;
 
 
 /**
@@ -73,7 +73,7 @@ public interface ComptabiliteDao {
      *
      * @param pEcritureComptable -
      */
-    void updateEcritureComptable(EcritureComptable pEcritureComptable);
+    EcritureComptable updateEcritureComptable(EcritureComptable pEcritureComptable);
 
     /**
      * Supprime l'écriture comptable d'id {@code pId}.

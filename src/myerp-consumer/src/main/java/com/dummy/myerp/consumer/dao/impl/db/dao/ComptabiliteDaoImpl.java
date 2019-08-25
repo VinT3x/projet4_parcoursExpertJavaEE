@@ -1,18 +1,18 @@
 package com.dummy.myerp.consumer.dao.impl.db.dao;
 
-import java.sql.Types;
-import java.util.List;
-
+import com.dummy.myerp.consumer.dao.contrat.ComptabiliteDao;
 import com.dummy.myerp.consumer.dao.impl.db.rowmapper.comptabilite.*;
+import com.dummy.myerp.consumer.db.AbstractDbConsumer;
+import com.dummy.myerp.consumer.db.DataSourcesEnum;
 import com.dummy.myerp.model.bean.comptabilite.*;
+import com.dummy.myerp.technical.exception.NotFoundException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import com.dummy.myerp.consumer.dao.contrat.ComptabiliteDao;
-import com.dummy.myerp.consumer.db.AbstractDbConsumer;
-import com.dummy.myerp.consumer.db.DataSourcesEnum;
-import com.dummy.myerp.technical.exception.NotFoundException;
+
+import java.sql.Types;
+import java.util.List;
 
 
 /**
@@ -215,7 +215,7 @@ public class ComptabiliteDaoImpl extends AbstractDbConsumer implements Comptabil
         SQLupdateEcritureComptable = pSQLupdateEcritureComptable;
     }
     @Override
-    public void updateEcritureComptable(EcritureComptable pEcritureComptable) {
+    public EcritureComptable updateEcritureComptable(EcritureComptable pEcritureComptable) {
         // ===== Ecriture Comptable
         NamedParameterJdbcTemplate vJdbcTemplate = new NamedParameterJdbcTemplate(getDataSource(DataSourcesEnum.MYERP));
         MapSqlParameterSource vSqlParams = new MapSqlParameterSource();
@@ -230,6 +230,9 @@ public class ComptabiliteDaoImpl extends AbstractDbConsumer implements Comptabil
         // ===== Liste des lignes d'écriture
         this.deleteListLigneEcritureComptable(pEcritureComptable.getId());
         this.insertListLigneEcritureComptable(pEcritureComptable);
+
+        return pEcritureComptable;
+
     }
 
 

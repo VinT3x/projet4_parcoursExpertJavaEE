@@ -1,48 +1,58 @@
 package com.dummy.myerp.business.impl.manager;
 
-import java.math.BigDecimal;
-import java.util.Date;
-
-import com.dummy.myerp.business.impl.AbstractBusinessManager;
+import com.dummy.myerp.consumer.dao.contrat.ComptabiliteDao;
 import com.dummy.myerp.consumer.dao.contrat.DaoProxy;
-import com.dummy.myerp.consumer.dao.impl.DaoProxyImpl;
-import com.dummy.myerp.consumer.dao.impl.db.dao.ComptabiliteDaoImpl;
-import com.dummy.myerp.model.bean.comptabilite.CompteComptable;
-import com.dummy.myerp.model.bean.comptabilite.EcritureComptable;
-import com.dummy.myerp.model.bean.comptabilite.JournalComptable;
-import com.dummy.myerp.model.bean.comptabilite.LigneEcritureComptable;
+import com.dummy.myerp.model.bean.comptabilite.*;
 import com.dummy.myerp.technical.exception.FunctionalException;
 import com.dummy.myerp.technical.exception.NotFoundException;
 import com.dummy.myerp.testbusiness.business.BusinessTestCase;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.*;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.mockito.junit.jupiter.MockitoExtension;
-import static org.mockito.Mockito.*;
+
+import javax.validation.ConstraintViolationException;
+import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import javax.validation.ConstraintViolationException;
+import static org.mockito.Mockito.*;
 
 
 @ExtendWith(MockitoExtension.class)
 public class ComptabiliteManagerImplTest extends BusinessTestCase {
 
+    @InjectMocks
+    ComptabiliteManagerImpl manager;
 
     @Mock
-    private ComptabiliteManagerImpl managerMock;
+    ComptabiliteManagerImpl test;
+
+    @Mock
+    private DaoProxy daoProxyMock;
+
+    @Mock
+    private ComptabiliteDao comptabiliteDaoMock;
+
+
 
     private EcritureComptable vEcritureComptable;
 
-    private ComptabiliteManagerImpl manager = new ComptabiliteManagerImpl();
+//    private ComptabiliteManagerImpl manager = new ComptabiliteManagerImpl();
 
     @BeforeEach
     void init() {
+        MockitoAnnotations.initMocks(this);
 
         // création d'une ecriture correcte
         vEcritureComptable = new EcritureComptable();
+        vEcritureComptable.setId(null);
         vEcritureComptable.setReference("AC-2019/11111");
         vEcritureComptable.setJournal(new JournalComptable("AC", "Achat"));
         vEcritureComptable.setDate(new Date());
@@ -141,16 +151,28 @@ public class ComptabiliteManagerImplTest extends BusinessTestCase {
     @Test
     public void checkEcritureComptableContext() throws NotFoundException, FunctionalException {
 
+
         // une ecriture comptable existe déjà avec cette référence
-        assertThrows(FunctionalException.class, () -> {
             EcritureComptable vEcritureComptableRefAlreadyExist = new EcritureComptable();
             vEcritureComptableRefAlreadyExist.setReference("AC-2019/11111");
 
-            when(managerMock.getEcritureComptableByRef(anyString()))
+
+            when(comptabiliteDaoMock.getEcritureComptableByRef(anyString()))
                     .thenReturn(vEcritureComptableRefAlreadyExist);
 
-            managerMock.checkEcritureComptableContext(vEcritureComptable);
-        });
+            assertThrows(FunctionalException.class, () -> {
+                manager.checkEcritureComptableContext(vEcritureComptable);
+            });
+
+            // si elles ont le même id, donc même objet alors pas d'erreur
+            vEcritureComptable.setId(2);
+            vEcritureComptableRefAlreadyExist.setId(2);
+            assertDoesNotThrow(() -> manager.checkEcritureComptableContext(vEcritureComptable));
+
+            // si aucune référence identique, pas d'    erreur
+            when(comptabiliteDaoMock.getEcritureComptableByRef(anyString()))
+                .thenThrow(NotFoundException.class);
+            assertDoesNotThrow(() -> manager.checkEcritureComptableContext(vEcritureComptable));
 
     }
 
@@ -168,6 +190,37 @@ public class ComptabiliteManagerImplTest extends BusinessTestCase {
     }
 
     @Test
-    public void addReference() {
+    public void addReference() throws NotFoundException, FunctionalException, ParseException {
+        vEcritureComptable.setId(-1);
+        vEcritureComptable.setJournal(new JournalComptable("AC", "Achat"));
+        vEcritureComptable.setDate(new SimpleDateFormat("yyyy/MM/dd").parse("2016/12/31"));
+        vEcritureComptable.setLibelle("Cartouches d’imprimante");
+
+        vEcritureComptable.getListLigneEcriture().add(new LigneEcritureComptable(new CompteComptable(606),
+                "Cartouches d’imprimante", new BigDecimal(43),
+                null));
+        vEcritureComptable.getListLigneEcriture().add(new LigneEcritureComptable(new CompteComptable(4456),
+                "TVA 20%", new BigDecimal(8),
+                null));
+        vEcritureComptable.getListLigneEcriture().add(new LigneEcritureComptable(new CompteComptable(401),
+                "Facture F110001", null,
+                new BigDecimal(51)));
+
+        SequenceEcritureComptable vExistingSequence = new SequenceEcritureComptable(2019,3);
+
+        when(manager.getSequenceByCodeJournalAndByAnneeCourante(any(SequenceEcritureComptable.class)))
+                .thenReturn(vExistingSequence);
+
+        when(manager.updateEcritureComptable(vEcritureComptable))
+                .thenReturn(vEcritureComptable);
+
+        doNothing().when(test).updateEcritureComptable(vEcritureComptable);
+
+        manager.addReference(vEcritureComptable);
+
+        assertThrows(NotFoundException.class, () -> {
+            vEcritureComptable.setDate(new Date());
+            manager.addReference(vEcritureComptable);
+        });
     }
 }

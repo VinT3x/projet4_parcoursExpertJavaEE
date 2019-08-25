@@ -1,28 +1,38 @@
 package com.dummy.myerp.business.impl.manager;
 
+import com.dummy.myerp.business.contrat.BusinessProxy;
+import com.dummy.myerp.business.contrat.manager.ComptabiliteManager;
+import com.dummy.myerp.business.impl.TransactionManager;
+import com.dummy.myerp.consumer.dao.contrat.ComptabiliteDao;
+import com.dummy.myerp.consumer.dao.contrat.DaoProxy;
+import com.dummy.myerp.model.bean.comptabilite.*;
+import com.dummy.myerp.technical.exception.FunctionalException;
+import com.dummy.myerp.technical.exception.NotFoundException;
+import org.apache.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.transaction.TransactionStatus;
+
+import javax.validation.*;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Set;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
-
-import com.dummy.myerp.model.bean.comptabilite.*;
-import org.apache.commons.lang3.ObjectUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.transaction.TransactionStatus;
-import com.dummy.myerp.business.contrat.manager.ComptabiliteManager;
-import com.dummy.myerp.business.impl.AbstractBusinessManager;
-import com.dummy.myerp.technical.exception.FunctionalException;
-import com.dummy.myerp.technical.exception.NotFoundException;
 
 
 /**
  * Comptabilite manager implementation.
  */
-public class ComptabiliteManagerImpl extends AbstractBusinessManager implements ComptabiliteManager {
+public class ComptabiliteManagerImpl implements ComptabiliteManager {
 
     // ==================== Attributs ====================
+    private ComptabiliteDao comptabiliteDao;
+
+    /** Le Proxy d'accès à la couche Business */
+    private static BusinessProxy businessProxy;
+    /** Le Proxy d'accès à la couche Consumer-DAO */
+    private static DaoProxy daoProxy;
+    /** Le gestionnaire de Transaction */
+    private static TransactionManager transactionManager;
 
 
     // ==================== Constructeurs ====================
@@ -34,6 +44,25 @@ public class ComptabiliteManagerImpl extends AbstractBusinessManager implements 
 
 
     // ==================== Getters/Setters ====================
+
+    /**
+     * Renvoie le Proxy d'accès à la couche Consumer-DAO
+     *
+     * @return {@link DaoProxy}
+     */
+    protected DaoProxy getDaoProxy() {
+        return daoProxy;
+    }
+
+    /**
+     * Renvoie le gestionnaire de Transaction
+     *
+     * @return TransactionManager
+     */
+    protected TransactionManager getTransactionManager() {
+        return transactionManager;
+    }
+
     @Override
     public List<CompteComptable> getListCompteComptable() {
         return getDaoProxy().getComptabiliteDao().getListCompteComptable();
@@ -58,7 +87,26 @@ public class ComptabiliteManagerImpl extends AbstractBusinessManager implements 
      */
     @Override
     public EcritureComptable getEcritureComptableByRef(String pRef) throws NotFoundException {
-        return getDaoProxy().getComptabiliteDao().getEcritureComptableByRef(pRef);
+        return comptabiliteDao.getEcritureComptableByRef(pRef);
+    }
+
+    @Override
+    public SequenceEcritureComptable getSequenceByCodeJournalAndByAnneeCourante(SequenceEcritureComptable pSeqEcritureComptable) throws NotFoundException {
+        return comptabiliteDao.getSequenceByCodeJournalAndByAnneeCourante(pSeqEcritureComptable);
+    }
+
+
+
+    /**
+     * Renvoie un {@link Validator} de contraintes
+     *
+     * @return Validator
+     */
+    protected Validator getConstraintValidator() {
+        Configuration<?> vConfiguration = Validation.byDefaultProvider().configure();
+        ValidatorFactory vFactory = vConfiguration.buildValidatorFactory();
+        Validator vValidator = vFactory.getValidator();
+        return vValidator;
     }
 
     /**
@@ -80,7 +128,7 @@ public class ComptabiliteManagerImpl extends AbstractBusinessManager implements 
         vRechercheSequenceEC.setJournalCode(pEcritureComptable.getJournal().getCode());
         vRechercheSequenceEC.setAnnee(vEcAnnee);
 
-        SequenceEcritureComptable vExistingSequence = getDaoProxy().getComptabiliteDao().getSequenceByCodeJournalAndByAnneeCourante(vRechercheSequenceEC);
+        SequenceEcritureComptable vExistingSequence = getSequenceByCodeJournalAndByAnneeCourante(vRechercheSequenceEC);
 
         /*        2.  * S'il n'y a aucun enregistrement pour le journal pour l'année concernée :
                         1. Utiliser le numéro 1.
@@ -102,7 +150,7 @@ public class ComptabiliteManagerImpl extends AbstractBusinessManager implements 
                 "/" + String.format("%05d", vNumSeqEC); // format sur 5 digit
 
         pEcritureComptable.setReference(vReference);
-        this.updateEcritureComptable(pEcritureComptable);
+        pEcritureComptable = this.updateEcritureComptable(pEcritureComptable);
 
         /*
                 4.  Enregistrer (insert/update) la valeur de la séquence en persistance
@@ -215,6 +263,7 @@ public class ComptabiliteManagerImpl extends AbstractBusinessManager implements 
                 }
             } catch (NotFoundException vEx) {
                 // Dans ce cas, c'est bon, ça veut dire qu'on n'a aucune autre écriture avec la même référence.
+                System.out.println("dans NotFoundException()");
             }
         }
     }
@@ -239,15 +288,17 @@ public class ComptabiliteManagerImpl extends AbstractBusinessManager implements 
      * {@inheritDoc}
      */
     @Override
-    public void updateEcritureComptable(EcritureComptable pEcritureComptable) throws FunctionalException {
+    public EcritureComptable updateEcritureComptable(EcritureComptable pEcritureComptable) throws FunctionalException {
+        EcritureComptable ecritureComptable;
         TransactionStatus vTS = getTransactionManager().beginTransactionMyERP();
         try {
-            getDaoProxy().getComptabiliteDao().updateEcritureComptable(pEcritureComptable);
+            ecritureComptable = comptabiliteDao.updateEcritureComptable(pEcritureComptable);
             getTransactionManager().commitMyERP(vTS);
             vTS = null;
         } finally {
             getTransactionManager().rollbackMyERP(vTS);
         }
+        return ecritureComptable;
     }
 
     /**
