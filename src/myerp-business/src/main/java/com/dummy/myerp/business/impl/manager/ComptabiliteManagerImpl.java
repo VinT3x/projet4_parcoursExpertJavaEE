@@ -289,6 +289,7 @@ public class ComptabiliteManagerImpl implements ComptabiliteManager {
      */
     @Override
     public EcritureComptable updateEcritureComptable(EcritureComptable pEcritureComptable) throws FunctionalException {
+        this.checkEcritureComptable(pEcritureComptable);
         EcritureComptable ecritureComptable;
         TransactionStatus vTS = getTransactionManager().beginTransactionMyERP();
         try {

@@ -119,7 +119,7 @@ class ComptabiliteDaoImplTest extends ConsumerTestCase {
 
     @Test
     void updateEcritureComptable() {
-        vEcritureComptable.setId(1);
+        vEcritureComptable.setId(2);
         vEcritureComptable.setJournal(new JournalComptable("OD", "Opérations Diverses"));
         vEcritureComptable.setReference("OD-" + vCurrentYear + "/00356");
         vEcritureComptable.setDate(vCurrentDate);
@@ -149,12 +149,12 @@ class ComptabiliteDaoImplTest extends ConsumerTestCase {
     void getSequenceByCodeAndAnneeCourante() throws NotFoundException {
         SequenceEcritureComptable vRechercheSequence = new SequenceEcritureComptable();
         vRechercheSequence.setJournalCode("VE");
-        vRechercheSequence.setAnnee(1963);
+        vRechercheSequence.setAnnee(2016);
         SequenceEcritureComptable vExistingSequence = dao.getSequenceByCodeJournalAndByAnneeCourante(vRechercheSequence);
 
         assertEquals("VE", vExistingSequence.getJournalCode());
-        assertEquals(1963, vExistingSequence.getAnnee().intValue());
-        assertEquals(42, vExistingSequence.getDerniereValeur().intValue());
+        assertEquals(2016, vExistingSequence.getAnnee().intValue());
+        assertEquals(41, vExistingSequence.getDerniereValeur().intValue());
 
         assertThrows(NotFoundException.class, () -> {
             vRechercheSequence.setJournalCode("VE");
