@@ -1,5 +1,6 @@
 # projet4_parcoursExpertJavaEE
 
+Les tests unitaires ont permis de déceler les anomalies suivantes.
 Corrections apportées :
 
 	Couche MODEL :
