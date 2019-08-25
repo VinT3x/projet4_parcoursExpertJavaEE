@@ -1,6 +1,7 @@
 # projet4_parcoursExpertJavaEE
 
 Corrections apportées :
+
 	Couche MODEL :
 	Dans l'entité EcritureComptable :
 		- le pattern de la propriété reference n'était pas correct, il faut en début de chaînes 2 lettres majuscules et non pas de 1 à 5 lettres.
