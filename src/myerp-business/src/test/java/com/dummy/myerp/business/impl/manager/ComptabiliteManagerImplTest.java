@@ -6,12 +6,11 @@ import com.dummy.myerp.model.bean.comptabilite.*;
 import com.dummy.myerp.technical.exception.FunctionalException;
 import com.dummy.myerp.technical.exception.NotFoundException;
 import com.dummy.myerp.testbusiness.business.BusinessTestCase;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import javax.validation.ConstraintViolationException;
@@ -29,6 +28,7 @@ import static org.mockito.Mockito.*;
 public class ComptabiliteManagerImplTest extends BusinessTestCase {
 
     @InjectMocks
+    @Spy
     ComptabiliteManagerImpl manager;
 
     @Mock
@@ -207,20 +207,31 @@ public class ComptabiliteManagerImplTest extends BusinessTestCase {
                 new BigDecimal(51)));
 
         SequenceEcritureComptable vExistingSequence = new SequenceEcritureComptable(2019,3);
-
-        when(manager.getSequenceByCodeJournalAndByAnneeCourante(any(SequenceEcritureComptable.class)))
-                .thenReturn(vExistingSequence);
-
-        when(manager.updateEcritureComptable(vEcritureComptable))
-                .thenReturn(vEcritureComptable);
-
-        doNothing().when(test).updateEcritureComptable(vEcritureComptable);
-
+        Mockito.doReturn(vExistingSequence).when(manager).getSequenceByCodeJournalAndByAnneeCourante(any(SequenceEcritureComptable.class));
+        Mockito.doReturn(vEcritureComptable).when(manager).updateEcritureComptable(any());
+        Mockito.doNothing().when(manager).insertOrUpdateSequenceEcritureComptable(any());
         manager.addReference(vEcritureComptable);
 
+        Mockito.verify(manager, times(1)).getSequenceByCodeJournalAndByAnneeCourante(any());
+        Mockito.verify(manager,times(1)).updateEcritureComptable(any());
+        Mockito.verify(manager,times(1)).insertOrUpdateSequenceEcritureComptable(any());
+
+
+        Mockito.doThrow(new NotFoundException()).when(manager).getSequenceByCodeJournalAndByAnneeCourante(any(SequenceEcritureComptable.class));
+
         assertThrows(NotFoundException.class, () -> {
-            vEcritureComptable.setDate(new Date());
             manager.addReference(vEcritureComptable);
         });
+
+        Mockito.doReturn(vExistingSequence).when(manager).getSequenceByCodeJournalAndByAnneeCourante(any(SequenceEcritureComptable.class));
+        Mockito.doThrow(new FunctionalException("erreur mise à jour")).when(manager).updateEcritureComptable(any());
+
+        assertThrows(FunctionalException.class, () -> {
+            manager.addReference(vEcritureComptable);
+        });
+
+        // verification de la référence
+        Assertions.assertEquals("AC-2016/00004",vEcritureComptable.getReference());
+
     }
 }

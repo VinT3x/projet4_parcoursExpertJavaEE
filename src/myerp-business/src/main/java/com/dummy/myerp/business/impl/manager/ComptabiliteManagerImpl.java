@@ -112,7 +112,6 @@ public class ComptabiliteManagerImpl implements ComptabiliteManager {
     /**
      * {@inheritDoc}
      */
-    // TODO à tester
     @Override
     public synchronized void addReference(EcritureComptable pEcritureComptable) throws FunctionalException, NotFoundException {
         /* Le principe :
