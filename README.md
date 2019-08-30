@@ -1,6 +1,6 @@
 # projet4_parcoursExpertJavaEE
 
-Corrections apportées :
+Les tests unitaires ont permis de déceler les anomalies suivantes. Voici les corrections apportées.
 
 	Couche MODEL :
 	Dans l'entité EcritureComptable :
